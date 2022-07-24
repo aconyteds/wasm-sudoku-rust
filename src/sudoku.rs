@@ -28,6 +28,16 @@ fn is_valid(board: &Vec<Vec<i8>>, row: usize, col: usize, ch: i8) -> bool {
     true
 }
 
+pub fn get_suggestions(board: &Vec<Vec<i8>>, row: usize, col: usize) -> Vec<i8> {
+    let mut suggestions = vec![];
+    for i in 1..10 {
+        if is_valid(board, row, col, i) {
+            suggestions.push(i);
+        }
+    }
+    suggestions
+}
+
 // Method to validate a sudoku board is solvable
 pub fn validate_sudoku(board: &Vec<Vec<i8>>) -> bool {
     // check if the board is valid
@@ -127,70 +137,34 @@ pub fn generate_sudoku() -> Vec<Vec<i8>> {
     //remove the value from 0,0 to avoid duplicates
     column_values.retain(|&x| x != board[0][0]);
     for i in 1..9 {
-        let mut invalid = true;
-        let mut index = random::<usize>() % column_values.len();
-        while invalid {
-            let value = column_values[index];
-            if !is_in_box(&board, i, 0, value) {
-                invalid = false;
-                board[i][0] = value;
-                column_values.remove(index);
-            } else {
-                index = random::<usize>() % column_values.len();
-            }
-        }
+        let suggestions = get_suggestions(&board, i, 0);
+        let index = random::<usize>() % suggestions.len();
+        board[i][0] = suggestions[index];
     }
     solve_sudoku(&mut board, true);
-    board
-}
 
-fn generate_cell(board: &mut Vec<Vec<i8>>, row: usize, col: usize) {
-    let values = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
-    // filter the values for only what is valid for the current position
-    let valid_values = values
-        .into_iter()
-        .filter(|&x| is_valid(board, row, col, x))
-        .collect::<Vec<i8>>();
-    // if the list of values is empty, then we need to backtrack
+    // Randomly remove values
+    // Solve the puzzle both ways and check if the solutions match
+    // The first time solutions don't match, return the previous board
+    loop {
+        // get a random number between 0 and 81
+        let index = random::<usize>() % 81;
+        let row = index / 9;
+        let col = index % 9;
 
-    if valid_values.len() == 0 {
+        if board[row][col] == 0 {
+            continue;
+        }
+        let prev_board = board.clone();
         board[row][col] = 0;
-        return;
-    }
-    // get a random value from the valid values
-    let value = valid_values[random::<usize>() % valid_values.len()];
-    board[row][col] = value;
-}
-
-fn is_in_row(board: &Vec<Vec<i8>>, row: usize, value: i8) -> bool {
-    for i in 0..9 {
-        if board[row][i] == value {
-            return true;
+        let mut board1 = board.clone();
+        let mut board2 = board.clone();
+        solve_sudoku(&mut board1, true);
+        solve_sudoku(&mut board2, false);
+        if board1 != board2 {
+            return prev_board;
         }
     }
-    false
-}
-
-fn is_in_col(board: &Vec<Vec<i8>>, col: usize, value: i8) -> bool {
-    for i in 0..9 {
-        if board[i][col] == value {
-            return true;
-        }
-    }
-    false
-}
-
-fn is_in_box(board: &Vec<Vec<i8>>, row: usize, col: usize, value: i8) -> bool {
-    let row_start = (row / 3) * 3;
-    let col_start = (col / 3) * 3;
-    for i in 0..3 {
-        for j in 0..3 {
-            if board[row_start + i][col_start + j] == value {
-                return true;
-            }
-        }
-    }
-    false
 }
 
 #[cfg(test)]
@@ -338,5 +312,30 @@ mod tests {
                 .collect::<Vec<String>>()
                 .join("\n")
         );
+    }
+    #[test]
+    fn correctly_generates_suggestions() {
+        // create a sudoku puzzle
+        let input = [
+            [7, 8, 0, 4, 0, 0, 1, 2, 0],
+            [6, 0, 0, 0, 7, 5, 0, 0, 9],
+            [0, 0, 0, 6, 0, 1, 0, 7, 8],
+            [0, 0, 7, 0, 4, 0, 2, 6, 0],
+            [0, 0, 1, 0, 5, 0, 9, 3, 0],
+            [9, 0, 4, 0, 6, 0, 0, 0, 5],
+            [0, 7, 0, 3, 0, 0, 0, 1, 2],
+            [1, 2, 0, 0, 0, 7, 4, 0, 0],
+            [0, 4, 9, 2, 0, 6, 0, 0, 7],
+        ];
+        // convert the input into a Vec<Vec<i8>>
+        let mut board = vec![vec![0; 9]; 9];
+        for i in 0..9 {
+            for j in 0..9 {
+                board[i][j] = input[i][j];
+            }
+        }
+        assert_eq!(super::get_suggestions(&board, 0, 2), vec![3, 5]);
+        assert_eq!(super::get_suggestions(&board, 0, 5), vec![3, 9]);
+        assert_eq!(super::get_suggestions(&board, 8, 7), vec![5, 8]);
     }
 }
