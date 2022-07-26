@@ -17,15 +17,19 @@ pub fn solve_sudoku(input: &str) -> String {
     for (i, c) in input.chars().enumerate() {
         board[i / 9][i % 9] = c.to_digit(10).unwrap() as i8;
     }
-    sudoku::solve_sudoku(&mut board, false);
-    // convert the board into a string
-    let mut output = String::new();
-    for i in 0..9 {
-        for j in 0..9 {
-            output.push_str(&board[i][j].to_string());
+    let solved = sudoku::solve_sudoku(&mut board, false);
+    if solved {
+        // convert the board into a string
+        let mut output = String::new();
+        for i in 0..9 {
+            for j in 0..9 {
+                output.push_str(&board[i][j].to_string());
+            }
         }
+        output
+    } else {
+        "Invalid Puzzle Provided".to_string()
     }
-    output
 }
 
 #[wasm_bindgen]
@@ -73,6 +77,9 @@ mod tests {
         let solution =
             "785439126612875349493621578857943261261758934934162785578394612126587493349216857";
         assert_eq!(solve_sudoku(input), solution);
+        let input =
+            "771009045596800001040051986389006400004000097012493650168020073437065020900300004";
+        assert_eq!(solve_sudoku(input), "Invalid Puzzle Provided");
     }
     #[test]
     fn wasm_can_generate_sudoku() {
