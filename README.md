@@ -23,7 +23,7 @@ None
 `String`: valid puzzle string with 0's for all of the empty squares.
 
 ### Example Usage:
-```
+```TypeScript
 import init, {generate_sudoku} from "./path/to/sudoku/folder";
 
 const generatePuzzle = async (): Promise<number[]> => {
@@ -44,7 +44,7 @@ This method will solve an uncompleted puzzle for you. If the puzzle cannot be co
 `String`: Solved puzzle, or "Invalid Puzzle Provided"
 
 ### Example Usage:
-```
+```TypeScript
 import init, {solve_sudoku} from "./path/to/sudoku/folder";
 
 const solveSudoku = async (puzzle: string): Promise<number[] | false> => {
@@ -68,7 +68,7 @@ Looks at a sudoku board and validates that it is currently valid. **Note** This 
 `bool`: Returns `true` or `false` depending on whether the puzzle is valid.
 
 ### Example Usage:
-```
+```TypeScript
 import init, {validate_sudoku} from "./path/to/sudoku/folder";
 
 const validateSudoku = async (puzzle: string): Promise<boolean> => {
@@ -92,7 +92,7 @@ This method will look at a specific cell in the board, and return a string conta
 `String`: String with numeric values that are viable candidates for the current cell.
 
 ### Example Usage:
-```
+```TypeScript
 import init, {generate_suggestions} from "./path/to/sudoku/folder";
 
 const getSuggestions = async (puzzle: string, row: number, col: number): Promise<number[]> => {
@@ -109,27 +109,27 @@ You may want some helper methods to facilitate the use of these libraries though
 
 ## `boardToString`
 Converts a Matrix (array of arrays) to a string.
-```
+```TypeScript
 const boardToString = (board: number[][]): string => board.map((row) => row.join("")).join("");
 ```
 ## `boardToArray`
 Converts a Matrix (array of arrays) to a single dimensional array.
-```
+```TypeScript
 const boardToArray = (board: number[][]): number[] => board.flat();
 ```
 
 ## `stringToArray`
 Converts a valid board string to an array.
-```
+```TypeScript
 const stringToArray = (puzzle: string): number[] => puzzle.split("").map(Number);
 ```
 
 ## `stringToBoard`
 Converts a valid board string, into a Matrix (array of arrays).
-```
+```TypeScript
 const stringToBoard = (puzzle: string): number[][] => {
     return puzzle.split("").map(Number).reduce((board, char, indx) => {
       return (indx % 9 === 0 ? board.push([char]) : board[board.length - 1].push(char)) && board
     }, []);
 }
-`
+```
