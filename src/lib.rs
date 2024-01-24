@@ -58,6 +58,37 @@ pub fn generate_suggestions(input: &str, row: usize, col: usize) -> String {
     output
 }
 
+#[wasm_bindgen]
+pub fn generate_all_suggestions(input: &str) -> String {
+    let mut board: Vec<Vec<i8>> = vec![vec![0; 9]; 9];
+    for (i, c) in input.chars().enumerate() {
+        board[i / 9][i % 9] = c.to_digit(10).unwrap() as i8;
+    }
+    // Output is a JSON array of arrays
+    let mut output = String::new();
+    output.push_str(&'['.to_string());
+    for i in 0..9 {
+        for j in 0..9 {
+            let suggestions = sudoku::get_suggestions(&board, i, j);
+            // Need to add array designator to the output
+            output.push_str(&'['.to_string());
+            output.push_str(
+                &suggestions
+                    .iter()
+                    .map(|x| x.to_string())
+                    .collect::<Vec<_>>()
+                    .join(","),
+            );
+            output.push_str(&']'.to_string());
+            if i != 8 && j != 8 {
+                output.push_str(&','.to_string());
+            }
+        }
+    }
+    output.push_str(&']'.to_string());
+    output
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -108,5 +139,12 @@ mod tests {
         assert_eq!(suggestions, "28");
         let suggestions = generate_suggestions(input, 1, 3);
         assert_eq!(suggestions, "278");
+    }
+    #[test]
+    fn wasm_can_generate_all_suggestions() {
+        let input =
+            "071009045596800001040051986389006400004000097012493650168020073437065020900300004";
+        let suggestions = generate_all_suggestions(input);
+        assert_eq!(suggestions, "[[2,8],[2,7],[1,3],[2,6],[3],[2,9],[2,3],[3,4],[2,5][2,5],[2,9],[3,6],[2,7,8],[3,4,7],[2,4,7],[2,3,7],[3],[1,2][2],[2,4],[3],[2,7],[3,5,7],[1,2,7],[2,3,7,9],[3,8],[2,6][3,7],[5,8],[5,9],[1,2,5,7],[1,7],[2,6,7],[1,2,4],[1],[2][6],[5],[4,5],[1,2,5],[1,8],[2,8],[1,2,3,8],[1,3,9],[2,7,8][7],[1],[2],[4,7],[7,8,9],[3,7,8],[6,8],[5],[8][1],[5,6],[5,8],[9],[2,4],[4],[5],[7],[3,9][4],[3],[7],[1,9],[1,6,8],[5,8],[1,8],[1,2],[8,9][2,9][2,5][5][1,3,7][1,7,8][7,8][1,5,8][1,6][4,8]]");
     }
 }
